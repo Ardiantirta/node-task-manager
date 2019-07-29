@@ -5,9 +5,9 @@ const { MongoClient, ObjectID } = require('mongodb')
 const connectionURL = 'mongodb://127.0.0.1:27017'
 const databaseName = 'node-task-manager'
 
-const id = new ObjectID()
-console.log(id)
-console.log(id.getTimestamp())
+// const id = new ObjectID()
+// console.log(id)
+// console.log(id.getTimestamp())
 
 MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) => {
   if (error) {
@@ -62,5 +62,64 @@ MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) =>
   //   console.log(result.ops)
   // })
 
+  // db.collection('Users').findOne({
+  //   _id: new ObjectID('5d3ea93ac86faa1cb0bd997c')
+  // }, (error, result) => {
+  //   if (error) {
+  //     return console.log(error)
+  //   }
+
+  //   console.log(result)
+  // })
+
+  // db.collection('Users').find({ age: 23 }).toArray((error, result) => {
+  //   console.log(result)
+  // })
+
+  // db.collection('Users').find({ age: 23 }).count((error, result) => {
+  //   console.log(result)
+  // })
+
+  // db.collection('Tasks').findOne({
+  //   _id: new ObjectID("5d3eae0eadf6e71f7012a0e5")
+  // }, (error, response) => {
+  //   if (error) {
+  //     return console.log(error)
+  //   }
+
+  //   console.log(response)
+  // })
+
+  // db.collection('Tasks').find({
+  //   completed: false
+  // }).toArray((error, response) => {
+  //   console.log(response)
+  // })
+
+  // db.collection('Users').updateOne({
+  //   _id: new ObjectID('5d3eab25d13bda41ac28616c')
+  // }, {
+  //   $inc: {
+  //     age: 3
+  //   }
+  // }).then((response) => {
+  //   console.log(`success ${response}`)
+  // }).catch((err) => {
+  //   console.log(`err ${err}`)
+  // })
+
+  const updateManyPromises = db.collection('Tasks').updateMany({
+    completed: false
+  }, {
+    $set: {
+      completed: true
+    }
+  })
+
+  updateManyPromises.then((response) => {
+    console.log(`success ${response}`)
+  }).catch((err) => {
+    console.log(`error ${err}`)
+  })
 
 })

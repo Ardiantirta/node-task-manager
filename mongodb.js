@@ -100,7 +100,7 @@ MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) =>
   //   _id: new ObjectID('5d3eab25d13bda41ac28616c')
   // }, {
   //   $inc: {
-  //     age: 3
+  //     age: -3
   //   }
   // }).then((response) => {
   //   console.log(`success ${response}`)
@@ -108,18 +108,46 @@ MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) =>
   //   console.log(`err ${err}`)
   // })
 
-  const updateManyPromises = db.collection('Tasks').updateMany({
-    completed: false
-  }, {
-    $set: {
-      completed: true
-    }
-  })
+  // const updateManyPromises = db.collection('Tasks').updateMany({
+  //   completed: false
+  // }, {
+  //   $set: {
+  //     completed: true
+  //   }
+  // })
 
-  updateManyPromises.then((response) => {
-    console.log(`success ${response}`)
-  }).catch((err) => {
-    console.log(`error ${err}`)
-  })
+  // updateManyPromises.then((response) => {
+  //   console.log(`success ${response}`)
+  // }).catch((err) => {
+  //   console.log(`error ${err}`)
+  // })
+
+  // db.collection('Users').deleteMany({
+  //   age: 23
+  // }).then((response) => {
+  //   console.log(response)
+  // }).catch((err) => {
+  //   console.log(err)
+  // })
+
+  // using promise
+  // db.collection('Tasks').deleteOne({
+  //   description: 'task3'
+  // }).then((response) => {
+  //   console.log(response)
+  // }).catch((err) => {
+  //   console.log(err)
+  // })
+
+  //using callback
+  // db.collection('Tasks').deleteOne({
+  //   description: 'task2'
+  // }, (error, response) => {
+  //   if (error) {
+  //     return console.log(error)
+  //   }
+
+  //   console.log(response)
+  // })
 
 })

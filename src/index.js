@@ -9,66 +9,72 @@ const port = process.env.PORT || 3000
 
 app.use(express.json())
 
-app.post('/users', (req, res) => {
+app.post('/users', async (req, res) => {
   const user = new User(req.body)
-  user.save().then(() => {
+
+  try {
+    await user.save()
     res.status(201).send(user)
-  }).catch((err) => {
+  } catch (err) {
     res.status(500).send(err)
-  })
+  }
 })
 
-app.get('/users', (req, res) => {
-  User.find({}).then((response) => {
+app.get('/users', async (req, res) => {
+  try {
+    const response = await User.find({})
     res.status(200).send(response)
-  }).catch((err) => {
+  } catch (err) {
     res.status(500).send(err)
-  })
+  }
 })
 
-app.get('/users/:id', (req, res) => {
+app.get('/users/:id', async (req, res) => {
   const _id = req.params.id
 
-  User.findById(_id).then((response) => {
-    if (!response) {
+  try {
+    const response = await User.findById(_id)
+    if (!response)
       return res.status(404).send()
-    }
 
     res.status(200).send(response)
-  }).catch((err) => {
+  } catch (err) {
     res.status(500).send(err)
-  })
+  }
 })
 
-app.post('/tasks', (req, res) => {
+app.post('/tasks', async (req, res) => {
   const task = new Task(req.body)
-  task.save().then(() => {
-    res.status(201).send(task)
-  }).catch((err) => {
+
+  try {
+    const response = await task.save()
+    res.status(201).send(response)
+  } catch (err) {
     res.status(500).send(err)
-  })
+  }
 })
 
-app.get('/tasks', (req, res) => {
-  Task.find({}).then((response) => {
+app.get('/tasks', async (req, res) => {
+  try {
+    const response = await Task.find({})
     res.status(200).send(response)
-  }).catch((err) => {
+  } catch (err) {
     res.status(500).send(err)
-  })
+  }
 })
 
-app.get('/tasks/:id', (req, res) => {
+app.get('/tasks/:id', async (req, res) => {
   const _id = req.params.id
-  Task.findById(_id)
-    .then((response) => {
-      if(!response) {
-        return res.status(404).send()
-      }
 
-      res.status(200).send(response)
-    }).catch((err) => {
-      res.status(500).send(err)
-    })
+  try {
+    const response = await Task.findById(_id)
+    if (!response)
+      return res.status(404).send()
+      
+    res.status(200).send(response)
+  } catch (err) {
+    res.status(500).send(err)
+  }
 })
 
 app.listen(port, () => {

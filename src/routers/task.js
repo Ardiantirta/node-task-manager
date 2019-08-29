@@ -1,10 +1,14 @@
 const express = require('express')
 const router = express.Router()
 
+const auth = require('../middleware/auth')
 const Task = require('../models/task')
 
-router.post('/tasks', async (req, res) => {
-  const task = new Task(req.body)
+router.post('/tasks', auth, async (req, res) => {
+  const task = new Task({
+    ...req.body,
+    creator: req.user._id
+  })
 
   try {
     const response = await task.save()
@@ -14,30 +18,33 @@ router.post('/tasks', async (req, res) => {
   }
 })
 
-router.get('/tasks', async (req, res) => {
+router.get('/tasks', auth, async (req, res) => {
   try {
-    const response = await Task.find({})
-    res.status(200).send(response)
+    await req.user.populate('tasks').execPopulate()
+    res.status(200).send(req.user.tasks)
   } catch (err) {
     res.status(500).send(err)
   }
 })
 
-router.get('/tasks/:id', async (req, res) => {
+router.get('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
 
   try {
-    const response = await Task.findById(_id)
+    const response = await Task.findOne({ _id, creator: req.user._id })
+
     if (!response)
       return res.status(404).send()
       
+    await response.populate('creator').execPopulate()
+
     res.status(200).send(response)
   } catch (err) {
     res.status(500).send(err)
   }
 })
 
-router.patch('/tasks/:id', async (req, res) => {
+router.patch('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
   const updates = Object.keys(req.body)
   const allowedUpdates = ['completed', 'description']
@@ -48,11 +55,7 @@ router.patch('/tasks/:id', async (req, res) => {
   }
 
   try {
-    // without middleware
-    // const response = await Task.findOneAndUpdate({ _id }, req.body, { new: true, runValidators: true })
-
-    //with middleware
-    const response = await Task.findOne({ _id })
+    const response = await Task.findOne({ _id, creator: req.user._id })
 
     if (!response) {
       res.status(404).send()
@@ -67,9 +70,9 @@ router.patch('/tasks/:id', async (req, res) => {
   }
 })
 
-router.delete('/tasks/:id', async (req, res) => {
+router.delete('/tasks/:id', auth, async (req, res) => {
   try {
-    const response = await Task.findOneAndRemove({ _id: req.params.id })
+    const response = await Task.findOneAndRemove({ _id: req.params.id, creator: req.user._id })
 
     if (!response) {
       return res.status(400).send()

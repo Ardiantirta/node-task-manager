@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
+const auth = require('../middleware/auth')
 const User = require('../models/user')
 
 router.post('/users', async (req, res) => {
@@ -8,37 +9,54 @@ router.post('/users', async (req, res) => {
 
   try {
     await user.save()
-    res.status(201).send(user)
+    const token = await user.generateAuthToken()
+    res.status(201).send({ user: user.getPublicProfile(), token })
   } catch (err) {
     res.status(500).send(err)
   }
 })
 
-router.get('/users', async (req, res) => {
+router.post('/users/login', async (req, res) => {
   try {
-    const response = await User.find({})
-    res.status(200).send(response)
-  } catch (err) {
-    res.status(500).send(err)
+    const user = await User.findByCredentials(req.body.email, req.body.password)
+    const token = await user.generateAuthToken()
+    res.send({ user, token })
+  } catch (e) {
+    res.status(400).send(e)
   }
 })
 
-router.get('/users/:id', async (req, res) => {
-  const _id = req.params.id
-
+router.post('/users/logout', auth, async (req, res) => {
   try {
-    const response = await User.findById(_id)
-    if (!response)
-      return res.status(404).send()
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token
+    })
 
-    res.status(200).send(response)
-  } catch (err) {
-    res.status(500).send(err)
+    await req.user.save()
+
+    res.send()
+  } catch (e) {
+    res.status(500).send()
   }
 })
 
-router.patch('/users/:id', async (req, res) => {
-  const _id = req.params.id
+router.post('/users/logoutAll', auth, async (req, res) => {
+  try {
+    req.user.tokens = []
+
+    await req.user.save()
+    
+    res.send()
+  } catch (e) {
+    res.status(500).send()
+  }
+})
+
+router.get('/users/me', auth, async (req, res) => {
+  res.send(req.user)
+})
+
+router.patch('/users/me', auth, async (req, res) => {
   const user = req.body
   const updates = Object.keys(user)
   const allowedUpdates = ['name', 'email', 'password', 'age']
@@ -53,29 +71,21 @@ router.patch('/users/:id', async (req, res) => {
     // const response = await User.findOneAndUpdate({ _id }, user, { new: true, runValidators: true })
 
     // with middleware
-    const response = await User.findOne({ _id })
+    updates.forEach((update) => req.user[update] = user[update] )
+    await req.user.save()
 
-    if (!response) {
-      return res.status(404).send()
-    }
-    updates.forEach((update) => response[update] = user[update] )
-    await response.save()
-
-    res.status(200).send(response)
+    res.status(200).send(req.user)
   } catch (err) {
     res.status(500).send(err)
   }
 })
 
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
   try {
-    const response = await User.findOneAndRemove({ _id: req.params.id })
 
-    if (!response) {
-      return res.status(400).send()
-    }
+    await req.user.remove()
 
-    res.status(200).send(response)
+    res.status(200).send(req.user)
   } catch (err) {
     res.status(500).send(err)
   }
